@@ -21,7 +21,6 @@ onMounted(() => {
 </script>
 
 <template>
-
   <h1>Weather Monitoring for Ships</h1>
 
   <div id="map" style="height: 800px;"></div>
