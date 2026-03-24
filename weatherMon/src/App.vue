@@ -1,7 +1,23 @@
 <script setup>
-import { GoogleMap, Marker } from 'vue3-google-map'
+import { onMounted } from "vue";
+import 'leaflet/dist/leaflet.css';
+import L from "leaflet";
 
-const center = { lat: 40.689247, lng: -74.044502 }
+onMounted(() => {
+  // inicijalizacija mape
+  const map = L.map("map").setView([20, 0], 2);
+
+  // OpenStreetMap layer
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: "&copy; OpenStreetMap contributors"
+  }).addTo(map);
+
+  // test marker (Zagreb)
+  L.marker([45.815, 15.981])
+    .addTo(map)
+    .bindPopup("Zagreb 🚢")
+    .openPopup();
+});
 </script>
 
 <template>
