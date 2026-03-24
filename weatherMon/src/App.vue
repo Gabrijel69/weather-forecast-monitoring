@@ -5,7 +5,7 @@ import L from "leaflet";
 
 onMounted(() => {
   // inicijalizacija mape
-  const map = L.map("map").setView([45.815, 15.981], 5);
+  const map = L.map("map").setView([20, 0], 2);
 
   // OpenStreetMap layer
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
