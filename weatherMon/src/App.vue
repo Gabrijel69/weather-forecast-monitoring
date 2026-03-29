@@ -28,7 +28,8 @@ onMounted(async () => {
 
   const ships = [
     { name: "Ship 1", lat: 45.815, lon: 15.981 },
-    { name: "Ship 2", lat: 40.7, lon: -74 }
+    { name: "Ship 2", lat: 40.7, lon: -74 },
+    { name: "Ship 3", lat: 45.347897, lon: 14.401748}
   ];
 
   for (const ship of ships) {
