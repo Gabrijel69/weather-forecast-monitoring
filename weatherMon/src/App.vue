@@ -1,14 +1,20 @@
 <script setup>
+import {ref} from "vue";
 import { onMounted } from "vue";
 import 'leaflet/dist/leaflet.css';
 import L from "leaflet";
+
+const ships = [
+    { name: "Ship 1", lat: 34.10, lon: -41.19 },
+    { name: "Ship 2", lat: 45.347897, lon: 14.401748}
+  ];
 
 async function getWeather(lat, lon) {
   const res = await fetch(
     `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=wind_speed_10m,precipitation`
   );
   const data = await res.json();
-  return data.current;
+  return data.current;t
 }
 
 function getShipStatus(weather) {
@@ -26,43 +32,69 @@ onMounted(async () => {
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png")
     .addTo(map);
 
-  const ships = [
-    { name: "Ship 1", lat: 45.815, lon: 15.981 },
-    { name: "Ship 2", lat: 40.7, lon: -74 },
-    { name: "Ship 3", lat: 45.347897, lon: 14.401748}
-  ];
-
   for (const ship of ships) {
     const weather = await getWeather(ship.lat, ship.lon);
     const status = getShipStatus(weather);
 
-    const icon = L.divIcon({
-      html: `<div style="
-        background:${status};
-        width:15px;
-        height:15px;
-        border-radius:50%;
-      "></div>`
-    });
+    const myIcon = {
+      radius: 5,
+      fillColor: status,
+      color: "#0000",
+      weight: 5,
+      opacity: 1,
+      fillOpacity: 0.8
+    };
 
-    L.marker([ship.lat, ship.lon], { icon })
-      .addTo(map)
-      .bindPopup(`
+
+    L.circleMarker([ship.lat, ship.lon], myIcon).addTo(map)
+    .bindPopup(`
         <b>${ship.name}</b><br>
         Wind: ${weather.wind_speed_10m} km/h<br>
         Rain: ${weather.precipitation} mm
       `);
   }
 });
+
+const selectedShip = ref(null);
+
 </script>
 
 <template>
-  <h1>Weather Monitoring for Ships</h1>
+  <div class="main">
+    <h1>Weather Monitoring for Ships</h1>
+
+    <div>
+    <label>Odaberi brod:</label>
+
+    <select v-model="selectedShip">
+      <option disabled value="">-- odaberi brod --</option>
+
+      <option
+        v-for="ship in ships"
+        :key="ship.id"
+        :value="ship"
+      >
+        {{ ship.name }}
+      </option>
+
+      </select>
+      <div v-if="selectedShip">
+        <h3>{{ selectedShip.name }}</h3>
+        <p>Latitude: {{ selectedShip.lat }}</p>
+        <p>Longitude: {{ selectedShip.lon }}</p>
+      </div>
+  </div>
+  
+  </div>
 
   <div id="map" style="height: 800px;"></div>
 
 </template>
 
 <style scoped>
-
+.main{
+  display: flex;
+  flex-direction: row;
+   justify-content: space-between;
+}
 </style>
