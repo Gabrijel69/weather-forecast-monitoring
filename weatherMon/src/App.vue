@@ -110,6 +110,8 @@ const selectedShip = ref(null);
 }
 
 #map{
+  margin-top: 5px;
+  margin-bottom: 5px;
   border-radius: 25px;
 }
 </style>
