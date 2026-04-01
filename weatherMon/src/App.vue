@@ -6,7 +6,7 @@ import L from "leaflet";
 
 const ships = [
     { name: "Ship 1", lat: 34.10, lon: -41.19 },
-    { name: "Ship 2", lat: 45.347897, lon: 14.401748}
+    { name: "Ship 2", lat: 45.34, lon: 14.40}
   ];
 
 async function getWeather(lat, lon) {
@@ -60,30 +60,25 @@ const selectedShip = ref(null);
 </script>
 
 <template>
-  <div class="main">
-    <h1>Weather Monitoring for Ships</h1>
 
-    <div>
-    <label>Odaberi brod:</label>
+  <div class="title"><h1>Weather Monitoring for Ships</h1></div>
 
-    <select v-model="selectedShip">
-      <option disabled value="">-- odaberi brod --</option>
+  <div class="dropdown-align">
+    <div class="dropdown">
 
-      <option
-        v-for="ship in ships"
-        :key="ship.id"
-        :value="ship"
-      >
-        {{ ship.name }}
-      </option>
+      <div>Odaberi brod:</div>
 
+      <select v-model="selectedShip">
+        <option v-for="ship in ships" :value="ship">
+          {{ ship.name }}
+        </option>
       </select>
-      <div v-if="selectedShip">
-        <h3>{{ selectedShip.name }}</h3>
-        <p>Latitude: {{ selectedShip.lat }}</p>
-        <p>Longitude: {{ selectedShip.lon }}</p>
-      </div>
-  </div>
+        <div v-if="selectedShip">
+          <h3>{{ selectedShip.name }}</h3>
+          <p>Latitude: {{ selectedShip.lat }}</p>
+          <p>Longitude: {{ selectedShip.lon }}</p>
+        </div>
+    </div>
   
   </div>
 
@@ -92,9 +87,29 @@ const selectedShip = ref(null);
 </template>
 
 <style scoped>
-.main{
+:global(body) {
+  background-color: #1f1f1f;
+  color: #8140B3;
+  padding: 10px 30px 10px;
+}
+
+.title {
   display: flex;
-  flex-direction: row;
-   justify-content: space-between;
+  justify-content: center;
+  align-items: center;
+}
+
+.dropdown-align{
+  display: flex;
+  justify-content: flex-end;
+}
+
+.dropdown{
+  display: flex;
+  flex-direction: column;
+}
+
+#map{
+  border-radius: 25px;
 }
 </style>
