@@ -61,12 +61,12 @@ const selectedShip = ref(null);
 
 <template>
 
-  <div class="title"><h1>Weather Monitoring for Ships</h1></div>
+  <div class="title">Weather Monitoring for Ships</div>
 
   <div class="dropdown-align">
     <div class="dropdown">
 
-      <div>Select Ship:</div>
+      <div class="dropdown-color">Odaberi brod:</div>
 
       <select v-model="selectedShip">
         <option v-for="ship in ships" :value="ship">
@@ -74,9 +74,9 @@ const selectedShip = ref(null);
         </option>
       </select>
         <div v-if="selectedShip">
-          <h3>{{ selectedShip.name }}</h3>
-          <p>Latitude: {{ selectedShip.lat }}</p>
-          <p>Longitude: {{ selectedShip.lon }}</p>
+          <h3 class="dropdown-color">{{ selectedShip.name }}</h3>
+          <p class="dropdown-color">Latitude: {{ selectedShip.lat }}</p>
+          <p class="dropdown-color">Longitude: {{ selectedShip.lon }}</p>
         </div>
     </div>
   
@@ -89,7 +89,6 @@ const selectedShip = ref(null);
 <style scoped>
 :global(body) {
   background-color: #1f1f1f;
-  color: #8140B3;
   padding: 10px 30px 10px;
 }
 
@@ -97,6 +96,9 @@ const selectedShip = ref(null);
   display: flex;
   justify-content: center;
   align-items: center;
+  font-size: 40px;
+  font-weight: bold;
+  color: #6F2DBD;
 }
 
 .dropdown-align{
@@ -110,8 +112,27 @@ const selectedShip = ref(null);
 }
 
 #map{
-  margin-top: 5px;
-  margin-bottom: 5px;
+  margin-top: 10px;
+  margin-bottom: 10px;
   border-radius: 25px;
+  transition: 0.4s;
+}
+
+select {
+  border:1px solid var(--vt-c-divider);
+  background-color: #A663CC;
+  border-radius:4px;
+  margin-top:10px;
+  padding:.2em .6em;
+  transition:background-color .5s
+}
+
+.dropdown-color{
+  color: #A663CC;
+  margin: 3px;
+}
+
+#map:hover{
+  box-shadow: 0 0 10px 5px #6F2DBD;
 }
 </style>
