@@ -66,7 +66,7 @@ const selectedShip = ref(null);
   <div class="dropdown-align">
     <div class="dropdown">
 
-      <div class="dropdown-color">Odaberi brod:</div>
+      <div class="dropdown-color">Select ship:</div>
 
       <select v-model="selectedShip">
         <option v-for="ship in ships" :value="ship">
