@@ -1,25 +1,36 @@
 <script setup>
-import {ref} from "vue";
-import { onMounted } from "vue";
+import {ref, watch, onMounted} from "vue";
 import 'leaflet/dist/leaflet.css';
 import L from "leaflet";
 
 const ships = [
-    { name: "Ship 1", lat: 34.10, lon: -41.19 },
+    { name: "Ship 1", lat: 34.10, lon: -41.19},
     { name: "Ship 2", lat: 45.34, lon: 14.40}
   ];
 
+const selectedShip = ref(null);
+const weather = ref(null);
+
+watch(selectedShip, async (ship) => {
+  if (ship) {
+    weather.value = await getWeather(ship.lat, ship.lon);
+  }
+});
+
 async function getWeather(lat, lon) {
   const res = await fetch(
-    `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=wind_speed_10m,precipitation`
+    `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=wind_speed_10m,precipitation,temperature_2m,relative_humidity_2m`
   );
   const data = await res.json();
-  return data.current;t
+  return data.current;
 }
 
 function getShipStatus(weather) {
   const wind = weather.wind_speed_10m;
   const rain = weather.precipitation;
+  const temperature = weather.temperature_2m;
+  const humidity = weather.relative_humidity_2m;
+
 
   if (wind > 15 || rain > 10) return "red";
   if (wind > 8 || rain > 3) return "orange";
@@ -55,35 +66,82 @@ onMounted(async () => {
   }
 });
 
-const selectedShip = ref(null);
-
 </script>
 
 <template>
 
   <div class="title">Weather Monitoring for Ships</div>
 
-  <div class="dropdown-align">
-    <div class="dropdown">
+  <v-container>
+    <v-row>
+      <v-col cols="8">
+        <v-sheet class="pa-2">
+          <div id="map"></div>
+        </v-sheet>
+      </v-col>
 
-      <div class="dropdown-color">Select ship:</div>
+      <v-col cols="4">
+        <v-sheet class="pa-2">
+          <v-select
+          clearable
+          v-model="selectedShip"
+          :items="ships"
+          item-title="name"
+          item-value="name"
+          label="Select ship:"
+          return-object
+          color="#A663CC" outlined dense
+          >
+            </v-select>
+          <div v-if="selectedShip">
+            <h3>{{ selectedShip.name }}</h3>
+            <p>Latitude: {{ selectedShip.lat }}</p>
+            <p>Longitude: {{ selectedShip.lon }}</p>
+          </div>
+          <v-row>
+            <v-col cols="6" class="border-md rounded mx-auto b-color" v-if="selectedShip && weather">
+              <v-sheet :elevation="4" class="pa-2 d-flex flex-column align-center">
+                <img alt="Wind" loading="lazy" width="20" height="20" decoding="async" src="https://img.icons8.com/?size=100&id=DyH5QCwpytAO&format=png&color=000000">
+                <div class="text-center pt-2">
+                  Wind: {{ weather.wind_speed_10m }} km/h
+                </div>
+              </v-sheet>
+            </v-col>
+            
+            <v-col cols="6" class="border-md rounded mx-auto b-color" v-if="selectedShip && weather">
+              <v-sheet :elevation="4" class="pa-2 d-flex flex-column align-center">
+                <img alt="Precipitation" loading="lazy" width="20" height="20" decoding="async" src="https://img.icons8.com/?size=100&id=uMEbUTw18q3z&format=png&color=000000">
+                <div class="text-center pt-2">
+                  Rain: {{ weather.precipitation }} mm
+                </div>
+              </v-sheet>
+            </v-col>
+          </v-row>
+          
+          <v-row> 
+            <v-col cols="6" class="border-md rounded mx-auto b-color" v-if="selectedShip && weather">
+              <v-sheet :elevation="4" class="pa-2 d-flex flex-column align-center">
+                <img alt="Temperature" loading="lazy" width="20" height="20" decoding="async" src="https://img.icons8.com/?size=100&id=DsREHQ4w4Toq&format=png&color=000000">
+                <div class="text-center pt-2">
+                  Temperature: {{ weather.temperature_2m}} °C
+                </div>
+              </v-sheet>
+            </v-col>
 
-      <select v-model="selectedShip">
-        <option v-for="ship in ships" :value="ship">
-          {{ ship.name }}
-        </option>
-      </select>
-        <div v-if="selectedShip">
-          <h3 class="dropdown-color">{{ selectedShip.name }}</h3>
-          <p class="dropdown-color">Latitude: {{ selectedShip.lat }}</p>
-          <p class="dropdown-color">Longitude: {{ selectedShip.lon }}</p>
-        </div>
-    </div>
-  
-  </div>
-
-  <div id="map" style="height: 800px;"></div>
-
+            <v-col cols="6" class="border-md rounded mx-auto b-color" v-if="selectedShip && weather">
+              <v-sheet :elevation="4" class="pa-2 d-flex flex-column align-center">
+                <img alt="Humidity" loading="lazy" width="20" height="20" decoding="async" src="https://img.icons8.com/?size=100&id=WlBsGGiFuhgC&format=png&color=000000">
+                <div class="text-center pt-2">
+                  Humidity: {{ weather.relative_humidity_2m }} %
+                </div>
+              </v-sheet>
+            </v-col>
+          </v-row>
+          
+        </v-sheet>
+      </v-col>
+    </v-row>
+  </v-container>
 </template>
 
 <style scoped>
@@ -101,19 +159,8 @@ const selectedShip = ref(null);
   color: #6F2DBD;
 }
 
-.dropdown-align{
-  display: flex;
-  justify-content: flex-end;
-}
-
-.dropdown{
-  display: flex;
-  flex-direction: column;
-}
-
 #map{
-  margin-top: 10px;
-  margin-bottom: 10px;
+  height: 800px;
   border-radius: 25px;
   transition: 0.4s;
 }
@@ -127,12 +174,16 @@ select {
   transition:background-color .5s
 }
 
-.dropdown-color{
-  color: #A663CC;
+.dropdown-text-color{
+  color: #E0E0E0;
   margin: 3px;
 }
 
 #map:hover{
   box-shadow: 0 0 10px 5px #6F2DBD;
+}
+
+.b-color{
+  border-color: #A663CC;
 }
 </style>
