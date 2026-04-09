@@ -3,13 +3,12 @@ import {ref, watch, onMounted} from "vue";
 import 'leaflet/dist/leaflet.css';
 import L from "leaflet";
 
-const ships = [
-    { name: "Ship 1", lat: 34.10, lon: -41.19},
-    { name: "Ship 2", lat: 45.34, lon: 14.40}
-  ];
+const ships = ref([]);
+let map;
 
 const selectedShip = ref(null);
 const weather = ref(null);
+const markers = {};
 
 watch(selectedShip, async (ship) => {
   if (ship) {
@@ -37,33 +36,80 @@ function getShipStatus(weather) {
   return "green";
 }
 
-onMounted(async () => {
-  const map = L.map("map").setView([20, 0], 2);
+function addOrUpdateShip(mmsi, lat, lon) {
 
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png")
-    .addTo(map);
+  let ship = ships.value.find(s => s.mmsi === mmsi);
 
-  for (const ship of ships) {
-    const weather = await getWeather(ship.lat, ship.lon);
-    const status = getShipStatus(weather);
+  if (!ship) {
+    ship = { mmsi, name: `Ship ${mmsi}`, lat, lon };
+    ships.value.push(ship);
+  } else {
+    ship.lat = lat;
+    ship.lon = lon;
+  }
 
-    const myIcon = {
+  if (markers[mmsi]) {
+    markers[mmsi].setLatLng([lat, lon]);
+  } else {
+
+    const marker = L.circleMarker([lat, lon], {
       radius: 5,
-      fillColor: status,
+      fillColor: "green",
       color: "#0000",
       weight: 5,
       opacity: 1,
       fillOpacity: 0.8
+    }).addTo(map);
+
+    marker.bindPopup(`Ship MMSI: ${mmsi}`);
+
+    markers[mmsi] = marker;
+  }
+}
+
+function connectAISStream() {
+
+  const socket = new WebSocket("wss://stream.aisstream.io/v0/stream");
+
+  socket.onopen = () => {
+    console.log("AIS WebSocket connected");
+
+    const subscriptionMessage = {
+      APIKey: "API",
+      BoundingBoxes: [[[30, -10], [46, 36]]]
     };
 
+    socket.send(JSON.stringify(subscriptionMessage));
+  };
 
-    L.circleMarker([ship.lat, ship.lon], myIcon).addTo(map)
-    .bindPopup(`
-        <b>${ship.name}</b><br>
-        Wind: ${weather.wind_speed_10m} km/h<br>
-        Rain: ${weather.precipitation} mm
-      `);
-  }
+  socket.onmessage = async (event) => {
+
+    const text = await event.data.text();   // convert Blob to string
+    console.log("AIS data received:", event.data);
+
+    const data = JSON.parse(text);
+
+    if (!data.Message || !data.Message.PositionReport) return;
+
+    const report = data.Message.PositionReport;
+
+    const lat = report.Latitude;
+    const lon = report.Longitude;
+    const mmsi = report.UserID;
+
+    addOrUpdateShip(mmsi, lat, lon);
+  };
+}
+
+onMounted(() => {
+
+  map = L.map("map").setView([20, 0], 2);
+
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png")
+    .addTo(map);
+
+  connectAISStream();
+
 });
 
 </script>
